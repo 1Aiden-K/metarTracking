@@ -1,0 +1,148 @@
+[
+    {
+        "id": "9276b7e8470ff4d1",
+        "type": "tab",
+        "label": "Flow 3",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "6264d75cd4034f3c",
+        "type": "mqtt in",
+        "z": "9276b7e8470ff4d1",
+        "name": "",
+        "topic": "airport/request",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "77eaf63267633797",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 90,
+        "y": 260,
+        "wires": [
+            [
+                "b48000a9234e695a",
+                "45a76e8c1a98e25c"
+            ]
+        ]
+    },
+    {
+        "id": "b48000a9234e695a",
+        "type": "http request",
+        "z": "9276b7e8470ff4d1",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://beta.aviationweather.gov/cgi-bin/data/metar.php",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 210,
+        "y": 120,
+        "wires": [
+            [
+                "45a76e8c1a98e25c"
+            ]
+        ]
+    },
+    {
+        "id": "55b12b7d0acd2956",
+        "type": "mqtt out",
+        "z": "9276b7e8470ff4d1",
+        "name": "",
+        "topic": "airport/receive",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "77eaf63267633797",
+        "x": 620,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "8c5f1b6eb1aff026",
+        "type": "function",
+        "z": "9276b7e8470ff4d1",
+        "name": "function 2",
+        "func": "//converts the payload into a string\nlet list = {payload: msg.payload};\nlet stringCode = JSON.stringify(list);\n//gets the 3 letter airport code as a string\nlet airport = stringCode.slice(12,15);\n//list of all the airport codes in order\nlet airportList = [\"ATL\", \"BOS\", 'BWI', 'CLE', 'CLT', 'CVG', 'DCA', 'DEN','DFW',\n'DTW','EWR','FLL','IAD','IAH','JFK','LAS','LAX','LGA','MCO','MDW','MEM','MIA',\n'MSP','ORD','PDX','PHL','PHX','PIT','SAN','SEA','SFO','SLC','STL','TPA'];\n\nlet nextAirport = airportList[(airportList.indexOf(airport)) + 1];\n\nlet boundaryOne = stringCode.indexOf(airport, 15);\nvar boundaryTwo = 1;\nif (airport === \"TPA\"){\n   boundaryTwo = stringCode.length(); \n}else{\n   boundaryTwo = (stringCode.indexOf(nextAirport, boundaryOne)- 3); \n    \n}\n\nlet singleAirportCode = stringCode.slice(boundaryOne, boundaryTwo);\n\nreturn {payload: singleAirportCode};",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 260,
+        "wires": [
+            [
+                "55b12b7d0acd2956"
+            ]
+        ]
+    },
+    {
+        "id": "45a76e8c1a98e25c",
+        "type": "join",
+        "z": "9276b7e8470ff4d1",
+        "name": "",
+        "mode": "custom",
+        "build": "string",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": " , ",
+        "joinerType": "str",
+        "accumulate": false,
+        "timeout": "",
+        "count": "2",
+        "reduceRight": false,
+        "reduceExp": "",
+        "reduceInit": "",
+        "reduceInitType": "num",
+        "reduceFixup": "",
+        "x": 310,
+        "y": 180,
+        "wires": [
+            [
+                "8c5f1b6eb1aff026"
+            ]
+        ]
+    },
+    {
+        "id": "77eaf63267633797",
+        "type": "mqtt-broker",
+        "name": "WCL",
+        "broker": "lab.theWCL.com",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    }
+]

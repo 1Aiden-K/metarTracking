@@ -6,10 +6,7 @@ SYSTEM_THREAD(ENABLED);
 #define BLYNK_AUTH_TOKEN "Nj0_zsdLBkKbOsu_iybFFNaDcrDhr3fQ"
 
 #include "MQTT.h"
-#include "oled-wing-adafruit.h"
 #include "blynk.h"
-
-OledWingAdafruit display;
 
 //variables
 std::string status;
@@ -79,22 +76,25 @@ void callback(char *topic, byte *payload, unsigned int length)
   reverse(statureMiles.begin(),statureMiles.end());
   stature = atof(statureMiles.c_str());
 
+  //determing the status based on the regulations and setting the onboard RGB LED
   if (stature < 1.0 || ((cloudCatagory == "OVC" || cloudCatagory == "BKN") && height < 5)){
     status = "LIFR";
+    RGB.color(139, 139, 0);
   }else if (stature < 3.0 || ((cloudCatagory == "OVC" || cloudCatagory == "BKN") && height < 10)){
     status = "IFR";
+    RGB.color(255,0,0);
   }else if (stature >= 3.0 || ((cloudCatagory == "BKN" || cloudCatagory == "OVC") && height >= 10)){
     status = "MVFR";
+    RGB.color(0,255,0);
   }else{
     /*Note: if this were to actually get used in an airport, I would not want to have 
     VFR be the else. It would be better to have LIFR be the default to not be at risk.
     This should be sufficient for a demonstration though.*/
     status = "VFR";
+    RGB.color(0,0,255);
   }
 
-  display.setCursor(0,0);
-  display.println(status.c_str());
-  display.display();
+  
 }
 
 MQTT client("lab.thewcl.com", 1883, callback);
@@ -106,15 +106,11 @@ void setup() {
 
   Blynk.begin(BLYNK_AUTH_TOKEN);
 
-  //setting up the display
-  display.setup();
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(0,0);
-  display.clearDisplay();
-  display.display();
+  //taking control of the onboard LED
+  RGB.control(true);
+  RGB.color(0,0,0); //sets to white
 
-  //subscribing to the channels
+  //connecting and subscribing to airport/request and airport/receive
   client.connect(System.deviceID());
     if (client.isConnected())
     {
@@ -125,7 +121,6 @@ void setup() {
 }
 
 void loop() {
-  display.loop();
   Blynk.run();
 
   //gets new metar code every 10 seconds
