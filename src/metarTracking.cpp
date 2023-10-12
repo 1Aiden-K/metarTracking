@@ -78,7 +78,6 @@ void callback(char *topic, byte *payload, unsigned int length)
     reverse(metarCodeReversed.begin(), metarCodeReversed.end());
     Serial.println(metarCode.c_str());
 
-/*
   //uses the non reversed code to find the cloud type
   if (metarCode.find("SCT") != -1){
     cloudCatagory = "SCT";
@@ -128,11 +127,11 @@ void callback(char *topic, byte *payload, unsigned int length)
   }else{
     /*Note: if this were to actually get used in an airport, I would not want to have 
     VFR be the else. It would be better to have LIFR be the default to not be at risk.
-    This should be sufficient for a demonstration though.*//*
+    This should be sufficient for a demonstration though.*/
     status = "VFR";
     LED(0,0,255);
     Serial.println("VFR");
-  }*/
+  }
 
   
 }
