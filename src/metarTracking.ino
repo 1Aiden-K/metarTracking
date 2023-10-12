@@ -8,6 +8,11 @@ SYSTEM_THREAD(ENABLED);
 #include "MQTT.h"
 #include "blynk.h"
 
+//defining pins for the rgb LED
+#define red A0
+#define blue A1
+#define green A2
+
 //variables
 std::string status;
 
@@ -31,10 +36,22 @@ int statureMilesLocation;
 std::string metarCode;
 std::string metarCodeReversed;
 
+void callback(char *topic, byte *payload, unsigned int length);
+
 //this is a blynk slider because I would need to upgrade to get a text input
 BLYNK_WRITE(V1) {
   //gets the airport code from the list
   airport = airports[param.asInt() - 1];
+  //expects a single line of the airport 
+  Serial.println(airport);
+}
+
+//function for the rgb led
+void LED(int r, int b, int g)
+{
+  analogWrite(red, r);
+  analogWrite(blue, b);
+  analogWrite(green, g);
 }
 
 void callback(char *topic, byte *payload, unsigned int length)
@@ -43,11 +60,13 @@ void callback(char *topic, byte *payload, unsigned int length)
     memcpy(p, payload, length);
     p[length] = NULL;
 
+    Serial.println(String(p));
+
     //takes the recieved code and reverses it
-    metarCode = p;
+    metarCode = std::string(p);
     metarCodeReversed = metarCode;
     reverse(metarCodeReversed.begin(), metarCodeReversed.end());
-
+    Serial.println(metarCode.c_str());
 
   //uses the non reversed code to find the cloud type
   if (metarCode.find("SCT") != -1){
@@ -62,9 +81,13 @@ void callback(char *topic, byte *payload, unsigned int length)
     cloudCatagory = "OVC";
   }
   
+  Serial.println(cloudCatagory.c_str());
+
   //finds the cloud height and stores it as an int
   cloudHeight = metarCode.substr((metarCode.find(cloudCatagory))+3, 3);
   height = stoi(cloudHeight);
+
+  Serial.println(height);
 
   //takes the reversed metar code to find the amount of stature miles (stores it reversed in a string)
   statureMiles = metarCodeReversed.substr(
@@ -76,22 +99,28 @@ void callback(char *topic, byte *payload, unsigned int length)
   reverse(statureMiles.begin(),statureMiles.end());
   stature = atof(statureMiles.c_str());
 
+  Serial.println(stature);
+
   //determing the status based on the regulations and setting the onboard RGB LED
   if (stature < 1.0 || ((cloudCatagory == "OVC" || cloudCatagory == "BKN") && height < 5)){
     status = "LIFR";
-    RGB.color(139, 139, 0);
+    LED(139, 139, 0);
+    Serial.println("LIFR");
   }else if (stature < 3.0 || ((cloudCatagory == "OVC" || cloudCatagory == "BKN") && height < 10)){
     status = "IFR";
-    RGB.color(255,0,0);
+    LED(255,0,0);
+    Serial.println("IFR");
   }else if (stature >= 3.0 || ((cloudCatagory == "BKN" || cloudCatagory == "OVC") && height >= 10)){
     status = "MVFR";
-    RGB.color(0,255,0);
+    LED(0,255,0);
+    Serial.println("MVFR");
   }else{
     /*Note: if this were to actually get used in an airport, I would not want to have 
     VFR be the else. It would be better to have LIFR be the default to not be at risk.
     This should be sufficient for a demonstration though.*/
     status = "VFR";
-    RGB.color(0,0,255);
+    LED(0,0,255);
+    Serial.println("VFR");
   }
 
   
@@ -106,25 +135,24 @@ void setup() {
 
   Blynk.begin(BLYNK_AUTH_TOKEN);
 
-  //taking control of the onboard LED
-  RGB.control(true);
-  RGB.color(0,0,0); //sets to white
+  //pins
+  pinMode(red,OUTPUT);
+  pinMode(blue,OUTPUT);
+  pinMode(green,OUTPUT);
+
+  LED(255,255,255);//just setting the LED to white
 
   //connecting and subscribing to airport/request and airport/receive
   client.connect(System.deviceID());
-    if (client.isConnected())
-    {
-        client.subscribe("airport/#");
-    }
-
-  
+  client.subscribe("airport/#");
 }
 
 void loop() {
   Blynk.run();
-
   //gets new metar code every 10 seconds
-  if (moment >= millis() + 10000){
+  if (moment + 10000 <= millis()){
     client.publish("airport/request", airport);
+    Serial.println("connectedwer");
+    moment = millis();
   }
  }
