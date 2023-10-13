@@ -21,7 +21,7 @@
         "rh": 0,
         "inputs": 0,
         "x": 90,
-        "y": 260,
+        "y": 220,
         "wires": [
             [
                 "b48000a9234e695a",
@@ -76,15 +76,15 @@
         "type": "function",
         "z": "9276b7e8470ff4d1",
         "name": "function 2",
-        "func": "//converts the payload into a string\nlet list = {payload: msg.payload};\nlet stringCode = JSON.stringify(list);\n//gets the 3 letter airport code as a string\nlet airport = stringCode.slice(12,15);\n//list of all the airport codes in order\nlet airportList = [\"ATL\", \"BOS\", 'BWI', 'CLE', 'CLT', 'CVG', 'DCA', 'DEN','DFW',\n'DTW','EWR','FLL','IAD','IAH','JFK','LAS','LAX','LGA','MCO','MDW','MEM','MIA',\n'MSP','ORD','PDX','PHL','PHX','PIT','SAN','SEA','SFO','SLC','STL','TPA'];\n\nlet nextAirport = airportList[(airportList.indexOf(airport)) + 1];\n\nlet boundaryOne = stringCode.indexOf(airport, 15);\nvar boundaryTwo = 1;\nif (airport === \"TPA\"){\n   boundaryTwo = stringCode.length(); \n}else{\n   boundaryTwo = (stringCode.indexOf(nextAirport, boundaryOne)- 3); \n    \n}\n\nlet singleAirportCode = stringCode.slice(boundaryOne, boundaryTwo);\n\nreturn {payload: singleAirportCode};",
+        "func": "//converts the payload into a string\nlet list = {payload: msg.payload};\nlet stringCode = JSON.stringify(list);\n//gets the 3 letter airport code as a string\nlet airport = stringCode.slice(12,15);\n//list of all the airport codes in order\nlet airportList = [\"ATL\", \"BOS\", 'BWI', 'CLE', 'CLT', 'CVG', 'DCA', 'DEN','DFW',\n'DTW','EWR','FLL','IAD','IAH','JFK','LAS','LAX','LGA','MCO','MDW','MEM','MIA',\n'MSP','ORD','PDX','PHL','PHX','PIT','SAN','SEA','SFO','SLC','STL',\"TPA\"];\n\nlet nextAirport = airportList[(airportList.indexOf(airport)) + 1];\n\nlet boundaryOne = stringCode.indexOf(airport, 15);\nvar boundaryTwo = 1;\n\n//if the airport is TPA there is a special case due to it being the last one\nif (airport == \"TPA\"){\n    boundaryTwo = stringCode.length;\n}else{\n    boundaryTwo = (stringCode.indexOf(nextAirport, boundaryOne)- 3); \n}\n\n//gets the code in between the defined boundaries\nlet singleAirportCode = stringCode.slice(boundaryOne, boundaryTwo);\n\nreturn {payload: singleAirportCode};",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 400,
-        "y": 260,
+        "x": 420,
+        "y": 220,
         "wires": [
             [
                 "55b12b7d0acd2956"
@@ -111,8 +111,8 @@
         "reduceInit": "",
         "reduceInitType": "num",
         "reduceFixup": "",
-        "x": 310,
-        "y": 180,
+        "x": 290,
+        "y": 220,
         "wires": [
             [
                 "8c5f1b6eb1aff026"
