@@ -43,7 +43,10 @@ BLYNK_WRITE(V1)
   airport = airports[param.asInt() - 1];
   // expects a single line of the airport
   Serial.println(airport);
+  Blynk.virtualWrite(V0, airport);
 }
+
+
 
 // function for the rgb led
 void LED(int r, int b, int g)
@@ -128,32 +131,29 @@ void callback(char *topic, byte *payload, unsigned int length)
   Serial.println(String(stature) + " Stature miles");
 
   // determing the status based on the regulations and setting the onboard RGB LED
-  if (stature < 1.0 || ((cloudCatagory == "OVC" || cloudCatagory == "BKN") && height < 5))
+  if (stature >= 5.0 && ((cloudCatagory == "FEW" || cloudCatagory == "CLR" || cloudCatagory == "SCT") && height > 30))
   {
-    status = "LIFR";
-    LED(255, 255, 0);
-    Serial.println("LIFR");
+    status = "VFR";
+    LED(0, 0, 255);
+    Serial.println("VFR");
   }
-  else if (stature < 3.0 || ((cloudCatagory == "OVC" || cloudCatagory == "BKN") && height < 10))
-  {
-    status = "IFR";
-    LED(255, 0, 0);
-    Serial.println("IFR");
-  }
-  else if ((stature >= 3.0 && stature < 5) || ((cloudCatagory == "BKN" || cloudCatagory == "OVC") && (height >= 10 && height < 30)))
+  else if (stature > 3.0 && ((cloudCatagory == "OVC" || cloudCatagory == "BKN" || cloudCatagory == "FEW" || cloudCatagory == "CLR" || cloudCatagory == "SCT") && height > 10))
   {
     status = "MVFR";
     LED(0, 255, 0);
     Serial.println("MVFR");
   }
+  else if (stature < 3.0 && ((cloudCatagory == "BKN" || cloudCatagory == "OVC") && height < 10))
+  {
+    status = "IFR";
+    LED(255, 0, 0);
+    Serial.println("IFR");
+  }
   else
   {
-    /*Note: if this were to actually get used in an airport, I would not want to have
-    VFR be the else. It would be better to have LIFR be the default to not be at risk.
-    This should be sufficient for a demonstration though.*/
-    status = "VFR";
-    LED(0, 0, 255);
-    Serial.println("VFR");
+    status = "LIFR";
+    LED(255, 255, 0);
+    Serial.println("LIFR");
   }
 }
 
